@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>AJAX Example</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <style>
+        body {
+            background-color: #cccccc;
+        }
+    </style>
+
+
+</head>
+
+
+<body>
+    <h3> Press Below Button To Get All To Do Items </h3>
+    <a href="http://127.0.0.1:5000/todo/api" class="btn btn-success" role="button">Press To Show Details</a>
+    <br><br>
+
+    <h3> Enter ID To Show Details Of Single Item </h3>
+    <form runat="server">
+        <input type="text" id="txt" runat="server"></input>
+        <input class="btn btn-success" type="button" id="searchbtn" value="Search" onclick="click_to_find()" />
+    </form>
+    <br><br><br><br>
+    <h3> Make Entry In The Database </h3>
+    <form role="form">
+        <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="title" placeholder="Enter Title" required="required"></input>
+            <label>Description</label>
+            <input type="text" id="dscp" placeholder="Enter Description" required="required"></input>
+            <br><br>
+            <button type="submit" id="add_btn" class="btn btn-primary">Submit</button>
+        </div>
+    </form>
+    <br><br>
+    <form role="del_form">
+        <div class="form-group">
+            <label>Delete Item</label>
+            <input type="text" id="ID" placeholder="Enter ID" required="required"></input>
+            <br><br>
+            <button type="submit" id="del_btn" class="btn btn-primary">Submit</button>
+        </div>
+    </form>
+
+
+    <script type="text/javascript">
+        function click_to_find() {
+            var host = window.location.host;
+            var txt = parseInt(($("#txt").val()), 10);
+            var path = "todo/api/" + txt;
+            window.location.pathname = path;
+            var url = host + path;
+            window.location(url);
+        }
+    </script>
+
+
+    <script>
+        $.ajax({
+            url: 'http://127.0.0.1:5000/todo/api',
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+            },
+            success: function (todoItems) {
+                for (todoIndex in todoItems) {
+                    console.log(todoItems[todoIndex].title);
+
+
+                }
+            },
+        })
+    </script>
+
+
+    <script>
+        $(document).ready(function () {
+        $("#add_btn").click(function (e) {
+            e.preventDefault();
+            sendRequest($("#title").val(), $("#dscp").val());
+        });
+        function validation(title, descp) {
+            if (title != '' || descp != '') {
+                // alert('id Or title Is Empty, Please Enter Both!');
+                return true
+            } else {
+                console.log('title or description Is Not Entered Correctly');
+            }
+        }
+        function sendRequest(title, descp) {
+            var ajax = $.ajax({
+                type: "POST",
+                url: "/todo/api",
+                data: { 'title': title, 'description': descp },
+                success: function (response) {
+                    console.log(response);
+                }
+            })
+            if ((validation(title) == true)) {
+
+                ajax.done(function (data) {
+                    console.log('done')
+                    alert('Data Send Successfullly!');
+                });
+                ajax.fail(function (data) {
+                    console.log('Error!')
+                    alert('Server Error: The Data Is Not Send!');
+                });
+            }
+        }
+    });
+    </script>
+
+
+    <script>
+        $(document).ready(function () {
+            $("#del_btn").click(function (e) {
+                e.preventDefault();
+                sendRequest($("#ID").val());
+            });
+
+            function sendRequest(id) {
+                var ajax = $.ajax({
+                    type: "DELETE",
+                    url: "/todo/api/" + id,
+                    data: { 'id': id },
+                    success: function (response) {
+                        console.log(response);
+                    }
+                });
+            }
+        });
+    </script>
+
+</html>

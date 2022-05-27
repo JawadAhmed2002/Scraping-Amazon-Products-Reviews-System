@@ -2,11 +2,16 @@ from flask import abort, render_template, jsonify, request
 
 
 from Scraping_Reviews import app
-from .models import TodoList, TodoListSchema, db
+from .models import Admin, AdminSchema,User,UserSchema,Product_Reviews,Product_ReviewsSchema, db
 
-todo_item_schema = TodoListSchema()
-todo_list_schema = TodoListSchema(many=True)
+admin_schema = AdminSchema()
+admin_schema = AdminSchema(many=True)
 
+user_schema = UserSchema()
+user_schema = UserSchema(many=True)
+
+product_review_schema = Product_ReviewsSchema()
+product_review_schema = Product_ReviewsSchema(many=True)
 
 @app.route('/')
 def index():

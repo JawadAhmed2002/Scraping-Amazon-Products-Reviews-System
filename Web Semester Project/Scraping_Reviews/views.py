@@ -150,38 +150,55 @@ def scrapeReviewsUser():
     return jsonify(get_json_reviews)
 
 
-@app.route("/todo/api", methods=["GET"])
-def get_all_details():
+@app.route('/scrapeFrequentWords/api', methods=['POST'])
+def scrapeFrequentWords():
+    # if 'loggedin' not in session:
+    #     return redirect(url_for('guestscrapeReviews'))
+    if urlparse(request.form['url']).netloc != 'www.amazon.com':
+        return jsonify({'error': 'Missing data! OR Invalid Amazon Product Link!'})
+
+    product_url = request.form['url']
+    # Parse Product data
+    parse_product = parse_html(product_url)
+    # getting the customer names
+    names = get_cus_names(parse_product)
+    names.pop(0)
+    cus_names = []  # finalize the customer names
+    # remove the dublicates
+    [cus_names.append(x) for x in names if x not in cus_names]
+    # Get the reviews data
+    rev_data = get_cus_reviews(parse_product)
+    print('Successfully Scraped Product Reviews')
+    frequent_words = wordCloud(make_dataframe(cus_names, rev_data))
+    words = dict(enumerate(frequent_words))
+    print(words)
+    return jsonify(words)
+
+@app.route("/adminHome/api", methods=["GET"])
+def get_user_length():
     items = User.query.all()
     result = user_schema.dump(items)
+    length = len(result)
+    return jsonify({'length': length})
+
+@app.route("/adminUser/api", methods=["GET"])
+def get_user_details():
+    items = User.query.all()
+    result = user_schema.dump(items)
+    return jsonify(result)
+
+@app.route("/showProducts/api", methods=["GET"])
+def get_product_details():
+    items = Product_Reviews.query.all()
+    result = product_review_schema.dump(items)
     print(result)
     return jsonify(result)
 
+@app.route("/userDelete/api/<id>", methods=["GET"])
+def delete_user(id):
+    if user := User.query.get(id):
+        db.session.delete(user)
+        db.session.commit()
+        return user_schema.jsonify(user)
 
-# @app.route("/todo/api/<id>", methods=["GET"])
-# def get_single_item(id):
-#     if item := TodoList.query.get(id):
-#         return todo_item_schema.jsonify(item)
-#     return abort(404)
-
-
-# @app.route("/todo/api/<id>", methods=["PUT"])
-# def update_todo_item(id):
-#     if item := TodoList.query.get(id):
-#         title = request.form.get('title', item.title)
-#         description = request.form.get('description', item.desc)
-#         item.title = title
-#         item.desc = description
-#         db.session.commit()
-#         return todo_item_schema.jsonify(item)
-#     else:
-#         return abort(404)
-
-
-# @app.route("/todo/api/<id>", methods=["DELETE"])
-# def delete_todo_item(id):
-#     if item := TodoList.query.get(id):
-#         db.session.delete(item)
-#         db.session.commit()
-#         return todo_item_schema.jsonify(item)
-#     return abort(404)
+    return abort(404)
